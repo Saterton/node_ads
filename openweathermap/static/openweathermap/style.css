@@ -1,0 +1,10 @@
+${demo.css}
+.wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h2 {
+    padding: 30px 0;
+}

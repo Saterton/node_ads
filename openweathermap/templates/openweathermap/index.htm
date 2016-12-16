@@ -1,0 +1,154 @@
+{% load staticfiles %}
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Погода</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'openweathermap/style.css' %}"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var data_day;
+        var data_night;
+        var data_pressure;
+        var categories;
+
+        data_day = [
+            {% for weather in city.weathers.all %}
+                {{ weather.temperature.day }},
+            {% endfor %}
+        ];
+
+        data_night = [
+            {% for weather in city.weathers.all %}
+                {{ weather.temperature.night }},
+            {% endfor %}
+        ];
+
+        data_pressure = [
+            {% for weather in city.weathers.all %}
+                {{ weather.pressure }},
+            {% endfor %}
+        ];
+
+        categories = [
+            {% for weather in city.weathers.all %}
+                '{{ weather.date.day }}',
+            {% endfor %}
+        ];
+
+
+        var showGraph = function (options) {
+            var titleX = options.oX,
+                    titleY = options.oY,
+                    suffix = options.suffix,
+                    data = options.data;
+
+            Highcharts.chart('container', {
+                title: {
+                    text: '',
+                    x: -20 //center
+                },
+                subtitle: {
+                    text: '',
+                    x: -20
+                },
+                xAxis: {
+                    categories: titleX
+                },
+                yAxis: {
+                    title: {
+                        text: titleY
+                    },
+                    plotLines: [{
+                        value: 0,
+                        width: 1,
+                        color: '#808080'
+                    }]
+                },
+                tooltip: {
+                    valueSuffix: suffix
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'right',
+                    verticalAlign: 'middle',
+                    borderWidth: 0
+                },
+                series: data
+            });
+        };
+
+        var temperature = {
+            oX: categories,
+            oY: 'Температура °С',
+            suffix: '°С',
+            data: [{
+                name: 'День',
+                data: data_day
+            }, {
+                name: 'Ночь',
+                data: data_night
+            }]
+        };
+
+        $('#temperature').on('click', function (el) {
+
+            showGraph(temperature);
+        });
+        var pressure = {
+            oX: categories,
+            oY: 'Давление гПа',
+            suffix: 'гПа',
+            data: [{
+                name: 'Давление',
+                data: data_pressure
+            }]
+        };
+
+        $('#pressure').on('click', function (el) {
+
+            showGraph(pressure);
+        });
+        showGraph(temperature);
+    });
+</script>
+<div class="wrapper">
+    {% if error_message %}
+        <p><strong>{{ error_message }}</strong></p>
+    {% else %}
+        <h1>{{ city }}</h1>
+        <h2>Координаты: [{{ city.latitude }}, {{ city.longitude }}]</h2>
+        <!-- BUTTON -->
+        <button id="temperature" class="btn btn-default">Температура</button>
+        <button id="pressure" class="btn btn-default">Давление</button>
+        <div id="container" style="width: 800px; height: 400px; margin: 0 auto"></div>
+        <table class="table">
+            <tr>
+                <th>Дата</th>
+                <th>Температура макс/мин</th>
+                <th>Ветер</th>
+                <th>Облачность</th>
+                <th>Давление</th>
+                <th>Описание</th>
+            </tr>
+            {% for weather in city.weathers.all %}
+                <tr>
+                    <td>{{ weather.date.date }}</td>
+                    <td>{{ weather.temperature.max }} °C /{{ weather.temperature.min }} °C</td>
+                    <td>{{ weather.wind }} м/с</td>
+                    <td>{{ weather.clouds }} %</td>
+                    <td>{{ weather.pressure }} гПа</td>
+                    <td>{{ weather.status }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</div>
+</body>
+</html>
